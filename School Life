@@ -791,3 +791,281 @@ class controls{
   }
   
 }
+
+class Battle {
+  //keeps track of the different conditions that can affect the way a battle plays out ( value of the week and the stats)
+  int AT = 0;
+  //Keeps track of the players and oppenents health 
+  int[] hp = new int[2];
+  
+  Battle(){
+    hp[0] = 2000;
+    hp[1] = 3000;
+  }
+  
+  void display(){
+     textSize(30);
+     fill(255,255,255);
+     text("Finish your 'work' before it beats you!",width/2 - 35,100);
+     text("Press 1 to attack!",width/2 - 35,150);
+     image(battle,0,height/2,200,220);
+     image(enemy1,325,75,600,600);
+     
+     //health bar for the player
+      fill(0);
+     textSize(15);
+     rect(25,600,250,25);
+     text(hp[0],250,644);
+     fill(0,255,0);
+    rect(25,600,hp[0]/8,25);
+    
+    //health bar for the enemy
+    fill(0);
+     rect(475,600,250,25);
+    text(hp[1],700,644);
+    fill(0,255,0);
+    rect(475,600,hp[1]/12,25);
+  }
+  
+  void update(){
+    //The battles are essentially time trials 
+     AT = int(random(1,15));
+  switch(AT){
+    case 1:
+    if(weeks == 1){
+      hp[0] -= int(random(20,25));
+    }
+    //Makes "test taking" easier if the intelligence stat is high 
+    if(intelligence >= 10){
+      hp[0] -= int(random(0,10));
+    }
+      break;
+    case 2:
+      if(weeks == 2){
+      hp[0] -= int(random(45,65));
+      }
+      
+      // the requirement for the easier "test" becomes higher as the weeks get higher
+       if(intelligence >= 30){
+      hp[0] -= int(random(20,25));
+    }
+      
+      break;
+    case 3:
+      if(weeks == 3 || weeks == 4){
+      hp[0] -=int(random(100,125));
+      }
+      // more stats are included in the requirement so that they feel as important
+        if(intelligence >= 30  && happiness >= 20){
+          hp[0] -= int(random(45,65));
+      }
+    
+      break;  
+      case 4:
+        if(weeks == 5 || weeks == 6){
+      hp[0] -=int(random(100,125));
+      }
+        if(intelligence >= 40  && happiness >= 20){
+          hp[0] -= int(random(45,65));
+      }
+      break;
+      case 5:
+      
+        if(weeks == 7 || weeks == 8){
+      hp[0] -=int(random(200,250));
+      }
+        if(intelligence >= 60  && happiness >= 30 && health >= 10){
+          hp[0] -= int(random(100,125));
+          boostAttack();
+      }
+      break;
+      case 6:
+      
+        if(weeks == 9 || weeks == 10){
+      hp[0] -=int(random(350, 375));
+      }
+      
+      if(intelligence >=  70 && happiness >= 35 && health >= 25){
+          hp[0] -= int(random(200,275));
+          boostAttack();
+      }
+      break;
+      case 7:
+         if(weeks == 11|| weeks == 12){
+      hp[0] -=int(random(375, 400));
+      }
+      
+      if(intelligence >=  80 && happiness >= 40 && health >= 25){
+          hp[0] -= int(random(350,375));
+          boostAttack();
+      }
+      break;
+      case 8:
+         if(weeks == 13 || weeks == 14){
+      hp[0] -=int(random(400, 425));
+      }
+      
+      if(intelligence >=  85 && happiness >=  50 && health >= 35){
+          hp[0] -= int(random(375,400));
+          boostAttack();
+      }
+      case 9:
+         if(weeks == 15){
+      hp[0] -=int(random(500, 550));
+      }
+      
+      if(intelligence >=  90 && happiness >= 55 && health >= 45){
+          hp[0] -= int(random(100,125));
+          boostAttack();
+      }
+      
+  }
+  
+  if(hp[0] <= 0){
+    //consequence for "failing a test" is to have your stats reduced severly
+    intelligence -= 20;
+    happiness /= 2;
+    health -= 10;
+    stage =2;
+    
+    // resets both players and oppenents health at the end of a test
+    hp[0] = 2000;
+    hp[1] = 3000;
+  }
+  
+  if(hp[1] <= 0){
+    //take the player back to the main game at the end of a test\
+   stage = 2;
+   happiness += 5;
+   
+   hp[1] = 3000;
+   hp[0] = 2000;
+  }
+  
+  }
+  
+  // reduces the oppenents health by 200 points every time the 1 button us pressed
+  void attack(){
+    if(keyPressed){
+      
+       if(key == '1'){
+      hp[1] -= 200;
+    }
+    
+  }
+ }
+ 
+ //Function used to reward player for having high stats
+ void boostAttack(){
+   if(key  == '1'){
+     hp[1] -= 400;
+     
+     if(weeks > 10){
+       hp[1] -= 500;
+     }
+     if(weeks > 12){
+       hp[1] -= 700;
+     }
+   }
+ }
+}
+
+class Buttons {
+
+  PVector Pos = new PVector(0,0);
+  float buttonW = 0;
+  float buttonH = 0;
+  color buttonC;
+  String text;
+  Boolean Pressed = false;
+  Boolean Clicked = true;
+  
+  Buttons(int x, int y,int w, int h, String t,int r, int g, int b){
+    Pos.x = x;
+    Pos.y = y;
+    buttonW = w;
+    buttonH = h;
+    buttonC = color(r,g,b);
+    text = t;  
+  }
+  
+  void update(){
+    // checks if the left mouse button is pressed
+    if(mousePressed == true && mouseButton == LEFT && Pressed == false)
+{ 
+   Pressed = true;
+   // makes sure that the mouse is clicking the area that the button is displayed
+   if (mouseX >= Pos.x && mouseX <= Pos.x + buttonW && mouseY >= Pos.y && mouseY <= Pos.y + buttonH) 
+   { 
+     Clicked = true;
+   }
+}
+   else
+   {
+     Clicked = false;
+    }
+    
+    if(mousePressed != true){
+      Pressed = false;
+    }
+    
+   } 
+  
+  
+   void display(){
+     fill(buttonC);
+     rect(Pos.x,Pos.y,buttonW,buttonH);
+     
+     fill(0);
+     textAlign(CENTER,CENTER);
+     // displays the text in the center of the box 
+     text(text,Pos.x + (buttonW /2), Pos.y + ( buttonH /2));
+   }
+ 
+ // function used in if statements to check if the buttons were clicked
+   boolean isClicked(){
+     return Clicked;
+   }
+
+
+}
+
+class Scene 
+{
+  PVector position;
+  
+  Scene(){
+    position = new PVector(0,0);
+  }
+    
+    void display(){
+       m.display(position);
+       p.display(position);
+    }
+    //centers the player as the screen moves along with the player
+    void centerPlayer(player p){
+      position.x = p.position.x - width/2;
+      position.y = p.position.y - height/2;
+    }
+    
+   // the tileset has a boundary that covers the background 
+    void mapBounds(Map m){
+      
+      if(position.x < m.leftBoundary()){
+        position.x = m.leftBoundary();
+      }
+      
+       if(position.y < m.upperBoundary()){
+        position.y = m.upperBoundary();
+      }
+      
+       if(position.x > m.rightBoundary() - width) {
+        position.x = m.rightBoundary() - width;
+      }
+      
+       if(position.y > m.lowerBoundary() - height){
+        position.y = m.lowerBoundary() - height;
+      }
+    }
+  
+}
