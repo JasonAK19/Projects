@@ -1,0 +1,793 @@
+/*
+School life
+Semester project Fall 2021 comp 101y
+*/
+
+//Class Objects
+player p;
+Map m;
+controls c;
+Scene scene;
+Battle b;
+
+// All buttons in current version of the game
+Buttons sleepButton;
+Buttons eatButton;
+Buttons studyButton;
+Buttons socialButton;
+Buttons backButton;
+Buttons contButton;
+
+//images and assets
+PImage startscreen;
+PImage playerImages[];
+PImage mapTiles[];
+
+PImage battle;
+PImage enemy1;
+
+//Originally supposed to be tilesets, they were turned into images due to inconveniences 
+PImage socialmap;
+PImage dhall;
+PImage library;
+
+
+// variable used to track each frame in the players sprite sheet
+int playerFrames;
+int allTiles;
+String prompt[];
+int sc6;
+
+// keeps track of the days and weeks of the semester
+int days = 1;
+int maxDays = 8;
+int weeks = 1;
+int maxWeeks = 16;
+
+// tracks the amount of acounts you made in a day
+int actions = 0;
+
+// stats that the player will change on their own during the game
+int intelligence = 0;
+int happiness = 0;
+int health = 0;
+
+//font for start screen
+PFont title;
+
+int screensizeX,screensizeY,stage;
+
+void setup(){
+ size(750,750);
+ 
+  playerFrames = 24;
+ // Array used to loop through sprite animations
+  playerImages = new PImage[playerFrames];
+ 
+ // Tiles for the map
+  allTiles = 486;
+  
+  //different text that can appear before a battle 
+  prompt = new String [6];
+  prompt[0] = "Your teacher suprised you with a pop quiz";
+  prompt[1] = "You have a test today";
+  prompt[2] = "Your have to work on your project";
+  prompt[3] = "Your homework is due today";
+  prompt[4] = "Your project is due today";
+  prompt[5] = "You have to complete your finals!!";
+ 
+ /* for(int i = 0; i < allTiles; i++){
+  mapTiles[i] = loadImage("Tiles/tile_" + nf(i,2) + ".png");
+  }
+ supposed to be a for loop that traverses through all images of the tileset, doesnt work
+  */
+  
+  mapTiles = new PImage[3];
+  
+  mapTiles[0] = loadImage("maptiles/tile_0036.png");
+  mapTiles[1] = loadImage("maptiles/tile_0028.png");
+  mapTiles[2] = loadImage("maptiles/tile_0076.png");
+ 
+ 
+  for(int i = 0;i < playerFrames;i++){
+    playerImages[i] = loadImage("penguin-gray/UMBCPENGUIN"+nf(i,2)+".png");
+  }
+  
+  battle = loadImage("BattlePenguin.png");
+  enemy1 = loadImage("Test.png");
+  socialmap = loadImage("main.png");
+  dhall = loadImage("dhall.png");
+  library = loadImage("library.png");
+  
+  p = new player(new PVector(width/2,height/2));
+  m = new Map();
+  c = new controls();
+  scene = new Scene();
+  b = new Battle();
+  
+  sleepButton = new Buttons(665,25,50,25,"sleep",195,140,10);
+  eatButton = new Buttons(665,55,50,25,"eat",195,140,10);
+  studyButton = new Buttons(665,85,50,25,"study",195,140,10);
+  socialButton = new Buttons(665,115,50,25,"social",195,140,10);
+  backButton = new Buttons(665,675,50,25,"back",195,140,10);
+  contButton = new Buttons(width/2 -50,600,75,50,"continue",195,140,10);
+  
+  stage = 1; 
+}
+
+//holds universal functions and method
+// universal meaning that they can apply to most, if not all "stages"
+void draw(){
+    p.update();
+    p.restrict();
+    
+    sleepButton.update();
+    eatButton.update();
+    studyButton.update();
+    socialButton.update();
+    
+    backButton.update();
+    contButton.update();
+    
+    c.checkKeys();
+     
+    background(255,255,255);
+    startscreen();
+    menuToGame(); 
+    battles();
+}
+
+// Made to display the starting screen before the actual game
+
+  void startscreen(){
+  startscreen = loadImage("UMBCLOGO2.png");
+  image(startscreen,0,0,width,height);
+ }
+
+// Stage variable keeps track of what is displayed on the screen, When the value changes so is the display
+
+void menuToGame(){
+   if(stage == 1){
+    textAlign(CENTER);
+    textSize(25);
+    text("SchoolLife",width/2,height- 35);
+    text("press any button to start!",width/2,height-5);
+    if(keyPressed == true){
+      stage = 2;
+    }
+  }
+  
+ // when the stage variable equals 2, the background changes, the map ,the player and other assets are displayed 
+ // acts as the main stage 
+ // gives player the options to choose four differnt actions
+   if(stage == 2){
+    background(135,206,235);
+    scene.display();
+    m.loadMap("main.json");
+    sleepButton.display();
+    eatButton.display();
+    studyButton.display();
+    socialButton.display();
+    stats();
+    timePassed();
+    
+  }
+  
+  // the stage that appears when choosing to study 
+  if(stage == 3){
+   // background(255,0,255);
+   image(library,0,0,width * 1.8,height  * 1.8);
+    p.display(m.mapPosition);
+    stats();
+    backButton.display();
+    timePassed();
+   }
+  
+  // stage that appears when choosing to eat
+   if(stage == 4){
+   // background(115,0,255);
+   image(dhall,0,0,width * 1.8,height  * 1.8);
+    p.display(m.mapPosition);
+    stats();
+    backButton.display();
+    timePassed(); 
+  }
+  
+  // stage that appears when choosing to socialize
+  if(stage == 5){
+   // background(510,90,30);
+    image(socialmap,0,0,width * 1.8,height  * 1.8);
+    // scene.display();
+    p.display(m.mapPosition);
+    stats();
+    backButton.display();
+    timePassed();
+  }
+  
+  // different prompts appear on before different battles
+  if(stage == 6 ){
+    background(0,0,0);
+    textSize(40);
+    fill(255,255,255);
+  text(prompt[0],width/2,height/2);
+    textSize(16);
+    stats();
+    timePassed();
+    contButton.display();
+    contButton.isClicked();
+      }
+ 
+  /* the stage numbers appear random but they are those number because the game 
+  will most likely not reach that amount of stages and 
+  the 0's correspond with the prompt array
+  */
+  
+ if(stage == 106 ){
+    background(0,0,0);
+    textSize(40);
+    fill(255,255,255);
+    text(prompt[1],width/2,height/2);
+    textSize(16);
+    stats();
+    timePassed();
+    contButton.display();
+    contButton.isClicked();
+      }
+      
+      if(stage == 1006 ){
+    background(0,0,0);
+    textSize(40);
+    fill(255,255,255);
+    text(prompt[2],width/2,height/2);
+    textSize(16);
+    stats();
+    timePassed();
+    contButton.display();
+    contButton.isClicked();
+      }
+      
+      if(stage == 10006 ){
+    background(0,0,0);
+    textSize(40);
+    fill(255,255,255);
+    text(prompt[3],width/2,height/2);
+    textSize(16);
+    stats();
+    timePassed();
+    contButton.display();
+    contButton.isClicked();
+      }
+     
+       if(stage == 100006 ){
+    background(0,0,0);
+    textSize(40);
+    fill(255,255,255);
+    text(prompt[4],width/2,height/2);
+    textSize(16);
+    stats();
+    timePassed();
+    contButton.display();
+    contButton.isClicked();
+      }
+      
+       if(stage == 1000006 ){
+    background(0,0,0);
+    textSize(40);
+    fill(255,255,255);
+    text(prompt[5],width/2,height/2);
+    textSize(16);
+    stats();
+    timePassed();
+    contButton.display();
+    contButton.isClicked();
+      }
+      
+    //the intended purpose for this is for the screen to look crazy and random  
+      if(stage == 100000006 ){
+    background(0,0,0);
+    textSize(40);
+    fill(255,255,255);
+    for(int i = 0; i < prompt.length; i++){
+     text(prompt[int(random(i))],width/2,height/2);
+   }
+    textSize(16);
+    stats();
+    timePassed();
+    contButton.display();
+    contButton.isClicked();
+      }
+      
+      
+  if(stage == 7){
+  background(200,32,1);
+  stats();
+ 
+  b.display();
+  b.update();
+  b.attack();
+  }
+  
+  if(stage == 1000){
+    background(255,255,255);
+   textSize(24);
+   fill(0);
+   text("Congratulations you survived your 1st semester ",width/2,height/2);
+  }
+  
+  if(stage == 1001){
+    background(255,255,255);
+   textSize(32);
+   fill(0);
+   text("You lost because your intelligence too low make sure to study",width/2,height/2);
+   text("make sure to study", width/2 , height/2 + 40);
+  }
+  
+  if(stage == 1002){
+    background(255,255,255);
+   textSize(32);
+   fill(0);
+   text("You lost because your not happy",width/2,height/2);
+   text("mental health is important",width/2,height/2 + 40);
+  }
+  
+  if(stage == 1003){
+    background(255,255,255);
+   textSize(22);
+   fill(0);
+   text("You lost because you're unhealthy,make sure to take care of yourself",width/2,height/2);
+  }
+}
+
+//function made to choose when different battles occurs, feels random for the player
+void battles(){
+  
+   if(days == 5 && weeks == 1  ){
+    stage = 6;
+    days++;
+   }
+   
+     if(days == 2 && weeks == 2  ){
+    stage = 106;
+    days++;
+   }
+    if(days == 3 && weeks == 3  ){
+    stage =1006;
+    days++;
+   }
+   
+     if(days == 3 && weeks == 4  ){
+    stage = 106;
+    days++;
+   }
+   
+     if(days == 4 && weeks == 5  ){
+    stage = 6;
+    days++;
+   }
+   
+     if(days == 1 && weeks == 6  ){
+    stage = 1006;
+    days++;
+   }
+   
+   if(days == 1 && weeks == 7 ){
+    stage = 1006;
+    days++;
+   }
+   
+     if(days == 4 && weeks == 7  ){
+    stage = 100006;
+    days++;
+   }
+   
+  
+  if(days == 1 && weeks == 8 ){
+    stage = 100006;
+    days++;
+   }
+   
+   if(days == 5 && weeks == 8 ){
+    stage = 100006;
+    days++;
+   }
+   
+   if(days == 1 && weeks == 9){
+    stage = 1006;
+    days++;
+   }
+   
+   if(days == 3 && weeks == 9 ){
+    stage = 100006;
+    days++;
+   }
+   
+   if(days == 1 && weeks == 10){
+    stage = 6;
+    days++;
+   }
+   
+    if(days == 4 && weeks == 10){
+    stage = 100006;
+    days++;
+   }
+   
+    if(days == 2 && weeks == 11){
+    stage = 106;
+    days++;
+   }
+   
+    if(days == 4 && weeks == 12){
+    stage = 10006;
+    days++;
+   }
+   
+    if(days == 6 && weeks == 12){
+    stage = 106;
+    days++;
+   }
+   
+    if(days == 2 && weeks == 13){
+    stage = 1006;
+    days++;
+   }
+   
+    if(days == 4 && weeks == 13){
+    stage = 6;
+    days++;
+   }
+   
+   
+    if(days == 1 && weeks == 14){
+    stage = 10006;
+    days++;
+   }
+   
+    if(days == 5 && weeks == 14){
+    stage = 106;
+    days++;
+   }
+   
+    if(days == 1 && weeks == 15){
+    stage = 1000006;
+    days++;
+   }
+   
+   if(days == 3 && weeks == 15){
+    stage = 1000006;
+    days++;
+   }
+   
+  if(days == 5 && weeks == 15){
+    stage = 100000006;
+    days++;
+   }      
+}
+  
+// functions controls what the actions of certain buttons due as well as keeping track of time in the semester 
+void timePassed(){
+  textSize(32);
+  fill(0);
+  text("Day: " + days, 60, 650);
+  text("Week: " + weeks, 60, 700);
+  
+  if(actions >= 4){
+    days += 1;
+    actions = 0;
+  }
+   
+  textSize(16);
+  if(days == maxDays){
+    weeks  += 1;
+    days = 1;
+  }
+  
+  if(weeks == maxWeeks){
+    stage = 1000;
+  }
+  
+  
+  if(sleepButton.isClicked()){
+     actions = 4;
+     health += 3;
+  }
+  
+  if(studyButton.isClicked()){
+    actions ++;
+    stage = 3;
+    intelligence += 5;
+    happiness -= 4;
+    health -= 2;
+  }
+  
+    if(eatButton.isClicked()){
+    actions ++;
+    stage = 4;
+    health += 10;
+    happiness += 1;
+  }
+  
+   if(backButton.isClicked()){
+    stage = 2;
+   }
+   
+   
+   if(contButton.isClicked()){
+     stage = 7;
+   }
+   
+   if(socialButton.isClicked()){
+     actions ++;
+     happiness += 10;
+     intelligence -= 5;
+     stage = 5;
+   }
+   
+}
+
+void stats(){
+  
+  text("Intelligence",60,50);
+  text("Happiness",60,100);
+  text("Health",60,150);
+  
+  fill(100,10,100);
+  rect(25,15,intelligence,20);
+  
+ // fill(0);
+  fill(255,10,10);
+  rect(25,65,happiness,20);
+  
+ // fill(0);
+  fill(10,255,10);
+  rect(25,115,health,20);
+  
+  if(intelligence >= 100){
+    intelligence = 100;
+  }
+  
+  if(health >= 100){
+    health = 100;
+  }
+  
+  if(happiness >= 100){
+    happiness = 100;
+  }
+  // game end when the stats drop below zero
+  if(weeks >= 3 && intelligence <= 0){
+    stage = 1001;
+  }
+  
+  if(weeks >= 3 && happiness <= 0){
+    stage = 1002;
+  }
+  
+  if(weeks >= 3 && health <= 0){
+    stage = 1003;
+  }
+  
+}
+
+
+
+/*
+class made for the character the player plays the game as. Involves all functions for the player
+*/
+
+class player{
+  PVector position;
+  float delta;
+  float x,y,w,h;
+  int currentFrame, loopFrames, offset; //tracks the current frame of the sprite and updates when going in a certain direction
+  
+  player(PVector iposition){
+    //keeps track of the players x and y position
+    position = iposition;
+    delta = 3.5;
+   
+    w = 32;
+    h = 32;
+    currentFrame = 0;
+    loopFrames = 6;
+    offset = 0;
+  }
+  
+  
+  void display(PVector screenPosition){
+    image(playerImages[currentFrame + offset], position.x - screenPosition.x , position.y - screenPosition.y);
+  }
+  
+  void moveUp(){
+    position.y += delta * -1;
+    // the offset variable corresponds with the image value in the sprites folder 
+    offset = 0;
+  }
+   void moveDown(){
+    position.y += delta;
+    offset = 12;
+  }
+   void moveLeft(){
+    position.x += delta * -1;
+    offset = 18;
+  }
+   void moveRight(){
+    position.x += delta;
+    offset = 6;
+  }
+  
+  //sets a boundary for the player 
+  void restrict(){
+    if(position.y <= 0){
+      position.y = 0;
+    }
+    if(position.y >= height){
+      position.y = height;
+    }
+    
+    if(position.x >= width ){
+      position.x =  width ;
+    }
+    
+    if(position.x <= 0){
+      position.x = 0;
+    }
+    
+  }
+  
+  void update(){
+    currentFrame++;
+    if(currentFrame == loopFrames){
+      currentFrame = 0;
+    }
+  }
+  
+}
+
+
+class Map{
+  int sizeX, sizeY;
+  int tileW, tileH;
+  int tiles[];
+  
+  PVector mapPosition;
+  
+  
+  Map(){
+    sizeX = 50;
+    sizeY = 50;
+    tileW = 16;
+    tileH = 16;
+    
+    tiles = new int[sizeX * sizeY];  
+    for(int i = 0; i < tiles.length; i++){
+      tiles[i] =int(random(mapTiles.length));
+    }
+    
+    mapPosition = new PVector(0,0);
+  }
+  
+  void display(PVector screenPosition){
+    for(int i =0; i < tiles.length;i++){
+       image(mapTiles[tiles[i]],((i%sizeX)*tileW) + (mapPosition.x - screenPosition.x),((i/sizeX)*tileH) + (mapPosition.y - screenPosition.y));
+    }
+  }
+  
+  // Map Position moves in the opposite direction of the player
+  
+  void moveUp(float delta){
+    mapPosition.y += delta ;
+  }
+   void moveDown(float delta){
+    mapPosition.y += delta * -1;
+  }
+   void moveLeft(float delta){
+    mapPosition.x += delta ;
+  }
+   void moveRight(float delta){
+    mapPosition.x += delta * -1;
+  }
+  
+  //adds boundaries the tile set and keeps the background colors off the screen
+  int leftBoundary(){
+    return int(mapPosition.x);
+  }
+  
+  int rightBoundary(){
+    return int(mapPosition.x + (sizeX * tileW));
+ }
+  
+  int upperBoundary(){
+    return int(mapPosition.y);
+  }
+  
+  int lowerBoundary(){
+    return int(mapPosition.y + (sizeY * tileH));
+  }
+  
+  //meant to load tileset maps from JSON files 
+  void loadMap(String fname){
+    JSONObject objMaster = loadJSONObject(fname);
+    JSONArray array = objMaster.getJSONArray("tilesets");
+    JSONObject objTile;
+    
+    for(int i = 0; (i < array.size()) && (i < tiles.length); i ++ ){
+      objTile= array.getJSONObject(i);
+      tiles[i] = objTile.getInt("firstgid");
+    }
+    
+    
+  }
+  
+  
+  
+  
+}
+
+class controls{
+  
+  controls(){
+    
+  }
+  
+  void checkKeys(){
+   
+    
+    if(keyPressed){
+     
+    /*only made so that we can test out functions involving battles 
+    and demonstrative purposes
+    */
+    
+       if(key == '0'){
+     stage = 1002;
+      }
+      
+       if(key == '9'){
+     stage = 1000;
+      }
+      
+     if(key == 'l'){
+        intelligence = 100;
+        happiness = 100;
+        health = 100;
+        weeks ++;
+      }
+      
+    
+      if(key == 'm'){
+        stage =6;
+      }
+      
+       if(key == 'p'){
+        days = maxDays;
+        weeks = maxWeeks;
+      }
+      
+      if(key == 'w'){
+        p.moveUp();
+      scene.centerPlayer(p);
+      scene.mapBounds(m);
+      }
+      
+      if(key == 's'){
+        p.moveDown();
+       scene.centerPlayer(p);
+        scene.mapBounds(m);
+      }
+      
+      if(key == 'a'){
+        p.moveLeft();
+       scene.centerPlayer(p);
+       scene.mapBounds(m);
+      }
+      
+      if(key == 'd'){
+        p.moveRight();
+       scene.centerPlayer(p);
+        scene.mapBounds(m);
+      }
+      
+    }
+    
+  }
+  
+}
